@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   description: "Sistem Absensi Terintegrasi IoT RFID untuk SMP Sukma Bangsa Pidie. Memudahkan pemantauan kehadiran, pengajuan izin, dan laporan absensi siswa secara real-time.",
   keywords: ["SIMBA", "Absensi", "RFID", "SMP Sukma Bangsa Pidie", "Sistem Absensi", "IoT"],
   authors: [{ name: "SMP Sukma Bangsa Pidie" }],
+  icons: {
+    icon: "/logoSukma.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
