@@ -1,6 +1,12 @@
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { requireFeature } from '@/lib/auth/require-feature'
 import { getVisibleClassIds } from '@/lib/auth/roles'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Ringkasan absensi harian, daftar siswa terlambat, sakit, izin, alpa, dan statistik kehadiran bulanan di SMP Sukma Bangsa Pidie.',
+}
 
 type StudentRow = { id: string; nama: string; kelas_id: string | null }
 type ClassRow = { id: string; nama: string }

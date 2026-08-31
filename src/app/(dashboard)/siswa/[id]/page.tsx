@@ -5,6 +5,22 @@ import { requireFeature } from '@/lib/auth/require-feature'
 import { bisaEdit, getVisibleClassIds, isAdmin } from '@/lib/auth/roles'
 import { saveSiswa, setSiswaStatus } from '../actions'
 import { unpairKartu } from '../../pairing-kartu/actions'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = createServiceRoleClient()
+  const { data: student } = await supabase.from('siswa').select('nama').eq('id', id).maybeSingle()
+  
+  return {
+    title: student ? `${student.nama} - Detail Siswa` : 'Detail Siswa',
+    description: student ? `Profil lengkap, riwayat absensi, dan kartu RFID atas nama ${student.nama} di SIMBA.` : 'Detail Siswa',
+  }
+}
 
 type Siswa = { id: string; nis: string; nama: string; kelas_id: string | null; is_aktif: boolean }
 type Kelas = { id: string; nama: string; tingkat: number }
@@ -57,10 +73,8 @@ export default async function SiswaDetailPage({
   if (!siswa) notFound()
 
   const { data: activeSemester } = await supabase.from('semester').select('id').eq('is_aktif', true).maybeSingle()
-  const [{ data: kelas }, { data: cards }, { data: logs }] = await Promise.all([
-    siswa.kelas_id
-      ? supabase.from('kelas').select('id, nama, tingkat').eq('id', siswa.kelas_id).maybeSingle()
-      : Promise.resolve({ data: null }),
+  const [{ data: allKelas }, { data: cards }, { data: logs }] = await Promise.all([
+    supabase.from('kelas').select('id, nama, tingkat').order('tingkat').order('nama'),
     supabase.from('kartu_rfid').select('id, uid_kartu, is_aktif').eq('siswa_id', siswa.id),
     supabase
       .from('log_absensi')
@@ -73,7 +87,8 @@ export default async function SiswaDetailPage({
   ])
 
   const student = siswa as Siswa
-  const classData = kelas as Kelas | null
+  const allClasses = (allKelas ?? []) as Kelas[]
+  const classData = allClasses.find((c) => c.id === student.kelas_id) ?? null
   const cardList = (cards ?? []) as Kartu[]
   const logList = (logs ?? []) as Log[]
   const admin = isAdmin(session)
@@ -107,7 +122,11 @@ export default async function SiswaDetailPage({
               <input name="nama" defaultValue={student.nama} required className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
               <select name="kelas_id" defaultValue={student.kelas_id ?? ''} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
                 <option value="">Belum ada kelas</option>
-                {classData && <option value={classData.id}>{classData.nama}</option>}
+                {allClasses.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    Kelas {item.nama}
+                  </option>
+                ))}
               </select>
               <button className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white">Simpan</button>
             </form>

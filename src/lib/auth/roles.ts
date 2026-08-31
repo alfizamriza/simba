@@ -49,7 +49,13 @@ export function isKepalaSekolah(session: GuruSession | null): boolean {
 }
 
 export function bisaEdit(session: GuruSession): boolean {
-  return session.roles.some((r) => r.role === 'admin' || r.role === 'wali_kelas')
+  return session.roles.some(
+    (r) =>
+      r.role === 'admin' ||
+      r.role === 'wali_kelas' ||
+      r.role === 'guru_mapel' ||
+      r.role === 'kepala_sekolah'
+  )
 }
 
 export function bisaAjukanPengajuan(session: GuruSession): boolean {

@@ -1,5 +1,11 @@
 import Link from 'next/link'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Laporan Absensi',
+  description: 'Ekspor dan analisa laporan absensi siswa SMP Sukma Bangsa Pidie dalam format Excel atau PDF.',
+}
 import { requireFeature } from '@/lib/auth/require-feature'
 import { defaultReportFilters, loadAttendanceReport, parseReportFilters } from '@/lib/reports/attendance'
 

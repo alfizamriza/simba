@@ -4,6 +4,12 @@ import { requireFeature } from '@/lib/auth/require-feature'
 import { bisaAjukanPengajuan, bisaApprovePengajuan } from '@/lib/auth/roles'
 import { decidePengajuan } from './actions'
 import PengajuanForm from './pengajuan-form'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Pengajuan Izin / Sakit',
+  description: 'Kelola permohonan status ketidakhadiran, sakit, atau izin siswa SMP Sukma Bangsa Pidie.',
+}
 
 type Siswa = { id: string; nis: string; nama: string }
 type Pengajuan = {

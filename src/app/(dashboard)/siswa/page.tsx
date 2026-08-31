@@ -3,6 +3,12 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 import { requireFeature } from '@/lib/auth/require-feature'
 import { bisaEdit, getVisibleClassIds, isAdmin } from '@/lib/auth/roles'
 import { saveSiswa } from './actions'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Data Siswa',
+  description: 'Kelola data induk siswa, kartu RFID, kelas, dan status keaktifan siswa SMP Sukma Bangsa Pidie.',
+}
 import ImportSiswaForm from './import-siswa-form'
 import SiswaTableClient from './siswa-table-client'
 
@@ -30,14 +36,19 @@ export default async function SiswaPage({
 
   const supabase = createServiceRoleClient()
 
-  const visibleClassIds = getVisibleClassIds(session)
+  // Ambil semua kelas untuk dropdown target pemindahan & tambah siswa
+  const { data: allKelas } = await supabase
+    .from('kelas')
+    .select('id, nama, tingkat')
+    .order('tingkat')
+    .order('nama')
+  const allClasses = (allKelas ?? []) as Kelas[]
 
-  const classQuery = supabase.from('kelas').select('id, nama, tingkat').order('tingkat').order('nama')
-  if (visibleClassIds) {
-    classQuery.in('id', visibleClassIds.length ? visibleClassIds : ['00000000-0000-0000-0000-000000000000'])
-  }
-  const { data: kelas } = await classQuery
-  const classes = (kelas ?? []) as Kelas[]
+  // Filter kelas yang berhak dilihat oleh user untuk dropdown filter pencarian
+  const visibleClassIds = getVisibleClassIds(session)
+  const classes = visibleClassIds
+    ? allClasses.filter((c) => visibleClassIds.includes(c.id))
+    : allClasses
 
   let studentQuery = supabase
     .from('siswa')
@@ -45,7 +56,7 @@ export default async function SiswaPage({
     .order('nama')
     .range((page - 1) * pageSize, page * pageSize - 1)
 
-  if (visibleClassIds) {
+  if (visibleClassIds && kelasId !== 'unassigned') {
     studentQuery = studentQuery.in(
       'kelas_id',
       visibleClassIds.length ? visibleClassIds : ['00000000-0000-0000-0000-000000000000']
@@ -138,7 +149,7 @@ export default async function SiswaPage({
               className="rounded-[6px] border border-[#DCE4E2] bg-white px-3 py-1.5 text-xs text-[#5B6B68] focus:border-[#0F766E] focus:outline-none"
             >
               <option value="">Belum ada kelas</option>
-              {classes.map((item) => (
+              {allClasses.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.nama} · Tingkat {item.tingkat}
                 </option>
@@ -207,7 +218,7 @@ export default async function SiswaPage({
         {/* Client Table Component with bulk operations */}
         <SiswaTableClient
           students={students}
-          classes={classes}
+          classes={allClasses}
           cardSetIds={Array.from(cardSet)}
           attendanceRecord={Object.fromEntries(attendanceMap)}
           classRecord={Object.fromEntries(classMap)}
