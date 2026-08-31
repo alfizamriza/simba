@@ -10,7 +10,6 @@ const DOMAIN_INTERNAL = 'simba.internal'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
 
   const [nip, setNip] = useState('')
   const [password, setPassword] = useState('')
@@ -23,6 +22,7 @@ export default function LoginPage() {
     setLoading(true)
 
     const emailInternal = `${nip.trim()}@${DOMAIN_INTERNAL}`
+    const supabase = createClient()
 
     const { error } = await supabase.auth.signInWithPassword({
       email: emailInternal,
@@ -37,7 +37,7 @@ export default function LoginPage() {
     }
 
     router.push('/dashboard')
-    router.refresh() // penting: supaya middleware baca ulang session terbaru
+    router.refresh() // penting: supaya proxy baca ulang session terbaru
   }
 
   return (
