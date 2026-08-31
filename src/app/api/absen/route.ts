@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
     second: '2-digit',
   })
   const formatted = formatter.format(sekarangUTC).replace(' ', 'T')
-  const sekarang = new Date(formatted + '+07:00')
   const tanggalJakarta = formatted.split('T')[0]
+  const waktuJakarta = formatted.split('T')[1]
 
   await supabase.from('perangkat_iot').update({ last_seen_at: sekarangUTC.toISOString() }).eq('id', perangkat.id)
   await supabase.from('tap_log').insert({ uid_kartu: uidKartu, perangkat_id: perangkat.id })
@@ -96,8 +96,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ sukses: false, pesan: 'Siswa tidak terdaftar di kelas manapun' }, { status: 400 })
   }
 
-  // Tentukan hari dalam database (1 = Senin, ..., 7 = Minggu)
-  const jsDay = sekarang.getDay()
+  // Tentukan hari dalam database (1 = Senin, ..., 7 = Minggu) berdasarkan penanggalan Jakarta
+  const [year, month, day] = tanggalJakarta.split('-').map(Number)
+  const dateJakarta = new Date(Date.UTC(year, month - 1, day))
+  const jsDay = dateJakarta.getUTCDay()
   const hariDb = jsDay === 0 ? 7 : jsDay
 
   // Ambil jadwal jam masuk kelas siswa untuk hari ini
@@ -123,8 +125,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ sukses: false, pesan: `Hari libur nasional: ${libur.keterangan}` }, { status: 400 })
   }
 
-  const jamSekarang = sekarang.getHours()
-  const menitSekarang = sekarang.getMinutes()
+  const [jamSekarang, menitSekarang] = waktuJakarta.split(':').map(Number)
   const waktuSekarangMenit = jamSekarang * 60 + menitSekarang
 
   // Batas akhir siswa boleh absen masuk adalah jam pulang kelas untuk hari ini (default 15:00)

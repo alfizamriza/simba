@@ -65,11 +65,10 @@ export default function LoginPage() {
             <input
               type="text"
               required
-              inputMode="numeric"
               value={nip}
               onChange={(e) => setNip(e.target.value)}
               className="w-full rounded-[6px] border border-[#DCE4E2] bg-white px-3 py-2 font-mono text-sm text-[#1C2321] placeholder-[#5B6B68]/60 transition-colors focus:border-[#0F766E] focus:outline-none focus:ring-1 focus:ring-[#0F766E]"
-              placeholder="Contoh: 198501012010011001"
+              placeholder="Masukkan NIP atau Username"
             />
           </div>
 
